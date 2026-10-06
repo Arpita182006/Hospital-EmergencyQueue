@@ -1,56 +1,105 @@
-/* =========================================
-   MEDQUEUE JAVASCRIPT
-========================================= */
+/* =====================================================
+   MEDQUEUE - GITHUB PAGES VERSION
+   Hospital Emergency Queue Management System
+===================================================== */
 
 
-/* =========================
+/* =====================================================
+   DATA STORAGE
+===================================================== */
+
+let emergencyQueue =
+    JSON.parse(localStorage.getItem("emergencyQueue")) || [];
+
+let waitingQueue =
+    JSON.parse(localStorage.getItem("waitingQueue")) || [];
+
+let treatmentHistory =
+    JSON.parse(localStorage.getItem("treatmentHistory")) || [];
+
+
+/* =====================================================
+   SAVE DATA
+===================================================== */
+
+function saveData() {
+
+    localStorage.setItem(
+        "emergencyQueue",
+        JSON.stringify(emergencyQueue)
+    );
+
+    localStorage.setItem(
+        "waitingQueue",
+        JSON.stringify(waitingQueue)
+    );
+
+    localStorage.setItem(
+        "treatmentHistory",
+        JSON.stringify(treatmentHistory)
+    );
+}
+
+
+/* =====================================================
    PAGE NAVIGATION
-========================= */
+===================================================== */
 
-const navItems = document.querySelectorAll(".nav-item");
-const pages = document.querySelectorAll(".page");
+const navItems =
+    document.querySelectorAll(".nav-item");
+
+const pages =
+    document.querySelectorAll(".page");
 
 navItems.forEach(item => {
 
-    item.addEventListener("click", () => {
+    item.addEventListener("click", function () {
 
-        const pageName = item.dataset.page;
+        const pageName =
+            this.getAttribute("data-page");
 
         navItems.forEach(nav => {
             nav.classList.remove("active");
         });
 
-        item.classList.add("active");
+        this.classList.add("active");
 
         pages.forEach(page => {
             page.classList.remove("active");
         });
 
-        const selectedPage = document.getElementById(pageName);
+        const selectedPage =
+            document.getElementById(pageName);
 
         if (selectedPage) {
             selectedPage.classList.add("active");
         }
 
-        document
-            .getElementById("sidebar")
-            .classList.remove("open");
+        const sidebar =
+            document.getElementById("sidebar");
+
+        if (sidebar) {
+            sidebar.classList.remove("open");
+        }
 
     });
 
 });
 
 
-/* =========================
+/* =====================================================
    MOBILE MENU
-========================= */
+===================================================== */
 
-const menuBtn = document.getElementById("menuBtn");
-const sidebar = document.getElementById("sidebar");
+const menuBtn =
+    document.getElementById("menuBtn");
+
+const sidebar =
+    document.getElementById("sidebar");
 
 if (menuBtn) {
 
-    menuBtn.addEventListener("click", () => {
+    menuBtn.addEventListener("click", function () {
 
         sidebar.classList.toggle("open");
 
@@ -59,56 +108,56 @@ if (menuBtn) {
 }
 
 
-/* =========================
+/* =====================================================
    DATE
-========================= */
+===================================================== */
 
-function updateDate() {
+function showDate() {
 
     const dateElement =
         document.getElementById("dateDisplay");
 
     if (!dateElement) return;
 
-    const now = new Date();
+    const today = new Date();
 
     dateElement.textContent =
-        now.toLocaleDateString("en-IN", {
+        today.toLocaleDateString("en-IN", {
             day: "2-digit",
             month: "short",
             year: "numeric"
         });
-
 }
 
-updateDate();
+showDate();
 
 
-/* =========================
-   TOAST
-========================= */
+/* =====================================================
+   TOAST MESSAGE
+===================================================== */
 
 function showToast(message) {
 
     const toast =
         document.getElementById("toast");
 
+    if (!toast) return;
+
     toast.textContent = message;
 
     toast.classList.add("show");
 
-    setTimeout(() => {
+    setTimeout(function () {
 
         toast.classList.remove("show");
 
     }, 2500);
-
 }
 
 
-/* =========================
+/* =====================================================
    ESCAPE HTML
-========================= */
+===================================================== */
 
 function escapeHTML(value) {
 
@@ -122,176 +171,548 @@ function escapeHTML(value) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-
 }
 
 
-/* =========================
-   PATIENT INITIALS
-========================= */
+/* =====================================================
+   INITIALS
+===================================================== */
 
 function getInitials(name) {
 
-    if (!name) return "P";
+    if (!name) {
+        return "P";
+    }
 
-    const words = name.trim().split(/\s+/);
+    const words =
+        name.trim().split(/\s+/);
 
     if (words.length === 1) {
-        return words[0].substring(0, 2).toUpperCase();
+
+        return words[0]
+            .substring(0, 2)
+            .toUpperCase();
+
     }
 
     return (
         words[0][0] +
         words[words.length - 1][0]
     ).toUpperCase();
-
 }
 
 
-/* =========================
+/* =====================================================
    PRIORITY TEXT
-========================= */
+===================================================== */
 
 function priorityText(priority) {
 
-    switch (Number(priority)) {
+    priority = Number(priority);
 
-        case 1:
-            return "Critical";
-
-        case 2:
-            return "Serious";
-
-        case 3:
-            return "Moderate";
-
-        default:
-            return "Normal";
+    if (priority === 1) {
+        return "Critical";
     }
+
+    if (priority === 2) {
+        return "Serious";
+    }
+
+    if (priority === 3) {
+        return "Moderate";
+    }
+
+    return "Normal";
+}
+
+
+/* =====================================================
+   SORT EMERGENCY QUEUE
+   1 = Critical
+   2 = Serious
+   3 = Moderate
+   4 = Normal
+===================================================== */
+
+function sortEmergencyQueue() {
+
+    emergencyQueue.sort(function (a, b) {
+
+        return Number(a.priority) -
+               Number(b.priority);
+
+    });
+}
+
+
+/* =====================================================
+   REGISTER PATIENT
+===================================================== */
+
+const patientForm =
+    document.getElementById("patientForm");
+
+if (patientForm) {
+
+    patientForm.addEventListener(
+        "submit",
+        function (event) {
+
+            event.preventDefault();
+
+
+            const id =
+                document
+                    .getElementById("patientId")
+                    .value
+                    .trim();
+
+
+            const name =
+                document
+                    .getElementById("patientName")
+                    .value
+                    .trim();
+
+
+            const age =
+                document
+                    .getElementById("patientAge")
+                    .value;
+
+
+            const gender =
+                document
+                    .getElementById("patientGender")
+                    .value;
+
+
+            const problem =
+                document
+                    .getElementById("patientProblem")
+                    .value
+                    .trim();
+
+
+            const type =
+                document
+                    .getElementById("patientType")
+                    .value;
+
+
+            const priority =
+                document
+                    .getElementById("patientPriority")
+                    .value;
+
+
+            /* Check ID */
+
+            if (!id ||
+                !name ||
+                !age ||
+                !gender ||
+                !problem ||
+                !type) {
+
+                showToast(
+                    "Please fill all fields"
+                );
+
+                return;
+            }
+
+
+            /* Check duplicate ID */
+
+            const duplicateEmergency =
+                emergencyQueue.some(
+                    patient => patient.id === id
+                );
+
+            const duplicateWaiting =
+                waitingQueue.some(
+                    patient => patient.id === id
+                );
+
+            const duplicateHistory =
+                treatmentHistory.some(
+                    patient => patient.id === id
+                );
+
+
+            if (
+                duplicateEmergency ||
+                duplicateWaiting ||
+                duplicateHistory
+            ) {
+
+                showToast(
+                    "Patient ID already exists"
+                );
+
+                return;
+            }
+
+
+            /* Create patient */
+
+            const patient = {
+
+                id: id,
+
+                name: name,
+
+                age: age,
+
+                gender: gender,
+
+                problem: problem,
+
+                type: type,
+
+                priority: Number(priority),
+
+                registeredAt:
+                    new Date().toLocaleString("en-IN")
+
+            };
+
+
+            /* Emergency patient */
+
+            if (type === "Emergency") {
+
+                emergencyQueue.push(patient);
+
+                sortEmergencyQueue();
+
+            }
+
+            /* Normal patient */
+
+            else {
+
+                waitingQueue.push(patient);
+
+            }
+
+
+            saveData();
+
+            patientForm.reset();
+
+            document.getElementById(
+                "formMsg"
+            ).innerHTML = `
+                <span style="color:#15966f">
+                    ✓ Patient registered successfully.
+                </span>
+            `;
+
+
+            showToast(
+                "Patient registered successfully"
+            );
+
+
+            renderAll();
+
+        }
+    );
 
 }
 
 
-/* =========================
-   REFRESH QUEUE
-========================= */
+/* =====================================================
+   TREAT EMERGENCY PATIENT
+===================================================== */
 
-async function refreshQueue() {
+const treatEmergencyBtn =
+    document.getElementById(
+        "treatEmergencyBtn"
+    );
 
-    try {
+if (treatEmergencyBtn) {
 
-        const response =
-            await fetch("/queue");
+    treatEmergencyBtn.addEventListener(
+        "click",
+        function () {
 
-        if (!response.ok) {
-            throw new Error("Server error");
+            treatNextPatient();
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   TREAT NEXT PATIENT
+===================================================== */
+
+function treatNextPatient() {
+
+    let patient = null;
+
+
+    /* Priority Queue first */
+
+    if (emergencyQueue.length > 0) {
+
+        sortEmergencyQueue();
+
+        patient =
+            emergencyQueue.shift();
+
+    }
+
+    /* Then normal FIFO queue */
+
+    else if (waitingQueue.length > 0) {
+
+        patient =
+            waitingQueue.shift();
+
+    }
+
+
+    if (!patient) {
+
+        showToast(
+            "No patient waiting"
+        );
+
+        return;
+    }
+
+
+    /* Add to history */
+
+    treatmentHistory.unshift(patient);
+
+
+    saveData();
+
+    renderAll();
+
+
+    showToast(
+        patient.name +
+        " treated successfully"
+    );
+
+}
+
+
+/* =====================================================
+   TREAT SPECIFIC PATIENT
+===================================================== */
+
+function treatPatient(id) {
+
+    let patient = null;
+
+
+    /* Search emergency queue */
+
+    const emergencyIndex =
+        emergencyQueue.findIndex(
+            p => p.id === id
+        );
+
+
+    if (emergencyIndex !== -1) {
+
+        patient =
+            emergencyQueue.splice(
+                emergencyIndex,
+                1
+            )[0];
+
+    }
+
+
+    /* Search waiting queue */
+
+    if (!patient) {
+
+        const waitingIndex =
+            waitingQueue.findIndex(
+                p => p.id === id
+            );
+
+
+        if (waitingIndex !== -1) {
+
+            patient =
+                waitingQueue.splice(
+                    waitingIndex,
+                    1
+                )[0];
+
         }
 
-        const data =
-            await response.json();
-
-        updateDashboard(data);
-
-        renderEmergencyQueue(
-            data.emergency || []
-        );
-
-        renderWaitingQueue(
-            data.waiting || []
-        );
-
-        renderHistory(
-            data.history || []
-        );
-
-        document
-            .getElementById("serverStatus")
-            .textContent = "Online";
-
     }
 
-    catch (error) {
 
-        console.log("Backend not connected:", error);
+    if (!patient) {
 
-        document
-            .getElementById("serverStatus")
-            .textContent = "Offline";
+        showToast(
+            "Patient not found"
+        );
 
+        return;
     }
+
+
+    /* Add to history */
+
+    treatmentHistory.unshift(patient);
+
+
+    saveData();
+
+    renderAll();
+
+
+    showToast(
+        patient.name +
+        " treated successfully"
+    );
 
 }
 
 
-/* =========================
+/* =====================================================
    DASHBOARD
-========================= */
+===================================================== */
 
-function updateDashboard(data) {
+function updateDashboard() {
 
-    const emergency =
-        data.emergency || [];
+    const totalElement =
+        document.getElementById(
+            "totalPatients"
+        );
 
-    const waiting =
-        data.waiting || [];
+    const criticalElement =
+        document.getElementById(
+            "criticalPatients"
+        );
 
-    const history =
-        data.history || [];
+    const waitingElement =
+        document.getElementById(
+            "waitingPatients"
+        );
 
-    const total =
-        emergency.length +
-        waiting.length +
-        history.length;
+    const treatedElement =
+        document.getElementById(
+            "treatedPatients"
+        );
 
-    const critical =
-        emergency.filter(
-            patient => Number(patient.priority) === 1
+
+    const totalPatients =
+        emergencyQueue.length +
+        waitingQueue.length +
+        treatmentHistory.length;
+
+
+    const criticalPatients =
+        emergencyQueue.filter(
+            patient =>
+                Number(patient.priority) === 1
         ).length;
 
-    document.getElementById(
-        "totalPatients"
-    ).textContent = total;
 
-    document.getElementById(
-        "criticalPatients"
-    ).textContent = critical;
-
-    document.getElementById(
-        "waitingPatients"
-    ).textContent =
-        emergency.length + waiting.length;
-
-    document.getElementById(
-        "treatedPatients"
-    ).textContent =
-        history.length;
+    const waitingPatients =
+        emergencyQueue.length +
+        waitingQueue.length;
 
 
-    /* Next patient */
+    const treatedPatients =
+        treatmentHistory.length;
 
-    const nextPatient =
-        document.getElementById("nextPatient");
 
-    if (emergency.length === 0) {
+    if (totalElement) {
 
-        nextPatient.innerHTML = `
+        totalElement.textContent =
+            totalPatients;
+
+    }
+
+
+    if (criticalElement) {
+
+        criticalElement.textContent =
+            criticalPatients;
+
+    }
+
+
+    if (waitingElement) {
+
+        waitingElement.textContent =
+            waitingPatients;
+
+    }
+
+
+    if (treatedElement) {
+
+        treatedElement.textContent =
+            treatedPatients;
+
+    }
+
+
+    updateNextPatient();
+
+}
+
+
+/* =====================================================
+   NEXT EMERGENCY PATIENT
+===================================================== */
+
+function updateNextPatient() {
+
+    const container =
+        document.getElementById(
+            "nextPatient"
+        );
+
+    if (!container) return;
+
+
+    sortEmergencyQueue();
+
+
+    if (emergencyQueue.length === 0) {
+
+        container.innerHTML = `
+
             <div class="empty">
                 No emergency patients waiting.
             </div>
+
         `;
 
         return;
     }
 
-    const patient =
-        emergency[0];
 
-    nextPatient.innerHTML = `
+    const patient =
+        emergencyQueue[0];
+
+
+    container.innerHTML = `
 
         <div class="next-patient">
 
             <div class="avatar">
+
                 ${getInitials(patient.name)}
+
             </div>
 
             <div>
@@ -301,12 +722,18 @@ function updateDashboard(data) {
                 </strong>
 
                 <small>
+
                     ID: ${escapeHTML(patient.id)}
+
                     • ${escapeHTML(patient.problem)}
+
                 </small>
 
-                <span class="priority p${patient.priority}">
+                <span
+                    class="priority p${patient.priority}">
+
                     ${priorityText(patient.priority)}
+
                 </span>
 
             </div>
@@ -314,20 +741,27 @@ function updateDashboard(data) {
         </div>
 
     `;
-
 }
 
 
-/* =========================
-   EMERGENCY QUEUE
-========================= */
+/* =====================================================
+   EMERGENCY QUEUE TABLE
+===================================================== */
 
-function renderEmergencyQueue(patients) {
+function renderEmergencyQueue() {
 
     const table =
-        document.getElementById("emergencyTable");
+        document.getElementById(
+            "emergencyTable"
+        );
 
-    if (!patients.length) {
+    if (!table) return;
+
+
+    sortEmergencyQueue();
+
+
+    if (emergencyQueue.length === 0) {
 
         table.innerHTML = `
 
@@ -350,83 +784,95 @@ function renderEmergencyQueue(patients) {
 
 
     table.innerHTML =
-        patients.map(patient => `
+        emergencyQueue.map(function (patient) {
 
-        <tr>
+            return `
 
-            <td>
+                <tr>
 
-                <div class="patient-cell">
+                    <td>
 
-                    <div class="avatar">
-                        ${getInitials(patient.name)}
-                    </div>
+                        <div class="patient-cell">
 
-                    <div>
+                            <div class="avatar">
+                                ${getInitials(patient.name)}
+                            </div>
 
-                        <b>
-                            ${escapeHTML(patient.name)}
-                        </b>
+                            <div>
 
-                        <small>
-                            ${escapeHTML(patient.id)}
-                        </small>
+                                <b>
+                                    ${escapeHTML(patient.name)}
+                                </b>
 
-                    </div>
+                                <small>
+                                    ${escapeHTML(patient.id)}
+                                </small>
 
-                </div>
+                            </div>
 
-            </td>
+                        </div>
 
-
-            <td>
-                ${escapeHTML(patient.age)}
-            </td>
+                    </td>
 
 
-            <td>
-                ${escapeHTML(patient.problem)}
-            </td>
+                    <td>
+                        ${escapeHTML(patient.age)}
+                    </td>
 
 
-            <td>
-
-                <span class="priority p${patient.priority}">
-                    ${priorityText(patient.priority)}
-                </span>
-
-            </td>
+                    <td>
+                        ${escapeHTML(patient.problem)}
+                    </td>
 
 
-            <td>
+                    <td>
 
-                <button
-                    class="treat-btn"
-                    onclick="treatPatient('${encodeURIComponent(patient.id)}')">
+                        <span
+                            class="priority p${patient.priority}">
 
-                    Treat
+                            ${priorityText(patient.priority)}
 
-                </button>
+                        </span>
 
-            </td>
+                    </td>
 
-        </tr>
 
-    `).join("");
+                    <td>
+
+                        <button
+                            class="treat-btn"
+                            onclick="treatPatient('${escapeHTML(patient.id)}')">
+
+                            Treat
+
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
 
 }
 
 
-/* =========================
-   WAITING QUEUE
-========================= */
+/* =====================================================
+   WAITING QUEUE TABLE
+===================================================== */
 
-function renderWaitingQueue(patients) {
+function renderWaitingQueue() {
 
     const table =
-        document.getElementById("waitingTable");
+        document.getElementById(
+            "waitingTable"
+        );
 
-    if (!patients.length) {
+    if (!table) return;
+
+
+    if (waitingQueue.length === 0) {
 
         table.innerHTML = `
 
@@ -449,74 +895,83 @@ function renderWaitingQueue(patients) {
 
 
     table.innerHTML =
-        patients.map(patient => `
+        waitingQueue.map(function (patient) {
 
-        <tr>
+            return `
 
-            <td>
+                <tr>
 
-                <div class="patient-cell">
+                    <td>
 
-                    <div class="avatar">
-                        ${getInitials(patient.name)}
-                    </div>
+                        <div class="patient-cell">
 
-                    <div>
+                            <div class="avatar">
+                                ${getInitials(patient.name)}
+                            </div>
 
-                        <b>
-                            ${escapeHTML(patient.name)}
-                        </b>
+                            <div>
 
-                        <small>
-                            ${escapeHTML(patient.id)}
-                        </small>
+                                <b>
+                                    ${escapeHTML(patient.name)}
+                                </b>
 
-                    </div>
+                                <small>
+                                    ${escapeHTML(patient.id)}
+                                </small>
 
-                </div>
+                            </div>
 
-            </td>
+                        </div>
 
-
-            <td>
-                ${escapeHTML(patient.age)}
-            </td>
+                    </td>
 
 
-            <td>
-                ${escapeHTML(patient.problem)}
-            </td>
+                    <td>
+                        ${escapeHTML(patient.age)}
+                    </td>
 
 
-            <td>
+                    <td>
+                        ${escapeHTML(patient.problem)}
+                    </td>
 
-                <button
-                    class="treat-btn"
-                    onclick="treatPatient('${encodeURIComponent(patient.id)}')">
 
-                    Treat
+                    <td>
 
-                </button>
+                        <button
+                            class="treat-btn"
+                            onclick="treatPatient('${escapeHTML(patient.id)}')">
 
-            </td>
+                            Treat
 
-        </tr>
+                        </button>
 
-    `).join("");
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
 
 }
 
 
-/* =========================
-   HISTORY
-========================= */
+/* =====================================================
+   TREATMENT HISTORY
+===================================================== */
 
-function renderHistory(history) {
+function renderHistory() {
 
     const grid =
-        document.getElementById("historyGrid");
+        document.getElementById(
+            "historyGrid"
+        );
 
-    if (!history.length) {
+    if (!grid) return;
+
+
+    if (treatmentHistory.length === 0) {
 
         grid.innerHTML = `
 
@@ -535,283 +990,57 @@ function renderHistory(history) {
 
 
     grid.innerHTML =
-        history.map(patient => `
+        treatmentHistory.map(function (patient) {
 
-        <div class="history-card">
+            return `
 
-            <strong>
-                ${escapeHTML(patient.name)}
-            </strong>
+                <div class="history-card">
 
-            <small>
-                Patient ID:
-                ${escapeHTML(patient.id)}
-            </small>
+                    <strong>
+                        ${escapeHTML(patient.name)}
+                    </strong>
 
-            <small>
-                Age: ${escapeHTML(patient.age)}
-                • ${escapeHTML(patient.gender)}
-            </small>
+                    <small>
+                        Patient ID:
+                        ${escapeHTML(patient.id)}
+                    </small>
 
-            <p>
-                ${escapeHTML(patient.problem)}
-            </p>
+                    <small>
+                        Age:
+                        ${escapeHTML(patient.age)}
+                        •
+                        ${escapeHTML(patient.gender)}
+                    </small>
 
-            <span class="priority p${patient.priority}">
-                ${priorityText(patient.priority)}
-            </span>
+                    <p>
+                        ${escapeHTML(patient.problem)}
+                    </p>
 
-        </div>
+                    <span
+                        class="priority p${patient.priority}">
 
-    `).join("");
+                        ${priorityText(patient.priority)}
 
-}
-
-
-/* =========================
-   REGISTER PATIENT
-========================= */
-
-const patientForm =
-    document.getElementById("patientForm");
-
-if (patientForm) {
-
-    patientForm.addEventListener(
-        "submit",
-        async function(event) {
-
-            event.preventDefault();
-
-            const patient = {
-
-                id: document
-                    .getElementById("patientId")
-                    .value.trim(),
-
-                name: document
-                    .getElementById("patientName")
-                    .value.trim(),
-
-                age: document
-                    .getElementById("patientAge")
-                    .value,
-
-                gender: document
-                    .getElementById("patientGender")
-                    .value,
-
-                problem: document
-                    .getElementById("patientProblem")
-                    .value.trim(),
-
-                type: document
-                    .getElementById("patientType")
-                    .value,
-
-                priority: document
-                    .getElementById("patientPriority")
-                    .value
-
-            };
-
-
-            try {
-
-                const response =
-                    await fetch("/add", {
-
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/x-www-form-urlencoded"
-                        },
-
-                        body:
-                            new URLSearchParams(patient)
-
-                    });
-
-
-                const result =
-                    await response.text();
-
-
-                if (!response.ok) {
-
-                    throw new Error(result);
-
-                }
-
-
-                document.getElementById(
-                    "formMsg"
-                ).innerHTML = `
-                    <span style="color:#15966f">
-                        ✓ Patient registered successfully.
                     </span>
-                `;
 
+                </div>
 
-                patientForm.reset();
+            `;
 
-                showToast(
-                    "Patient registered successfully"
-                );
-
-                refreshQueue();
-
-            }
-
-            catch (error) {
-
-                document.getElementById(
-                    "formMsg"
-                ).innerHTML = `
-                    <span style="color:#d64550">
-                        ${escapeHTML(error.message)}
-                    </span>
-                `;
-
-            }
-
-        }
-    );
+        }).join("");
 
 }
 
 
-/* =========================
-   TREAT PATIENT
-========================= */
-
-async function treatPatient(encodedId) {
-
-    const id =
-        decodeURIComponent(encodedId);
-
-    try {
-
-        const response =
-            await fetch("/treat", {
-
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/x-www-form-urlencoded"
-                },
-
-                body:
-                    new URLSearchParams({
-                        id: id
-                    })
-
-            });
-
-
-        const result =
-            await response.text();
-
-
-        if (!response.ok) {
-            throw new Error(result);
-        }
-
-
-        showToast(
-            "Patient treated successfully"
-        );
-
-        refreshQueue();
-
-    }
-
-    catch (error) {
-
-        showToast(
-            "Unable to treat patient"
-        );
-
-        console.error(error);
-
-    }
-
-}
-
-
-/* =========================
-   TREAT EMERGENCY BUTTON
-========================= */
-
-const treatEmergencyBtn =
-    document.getElementById(
-        "treatEmergencyBtn"
-    );
-
-if (treatEmergencyBtn) {
-
-    treatEmergencyBtn.addEventListener(
-        "click",
-        async () => {
-
-            try {
-
-                const response =
-                    await fetch("/treat", {
-
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/x-www-form-urlencoded"
-                        },
-
-                        body: ""
-
-                    });
-
-
-                const result =
-                    await response.text();
-
-
-                if (!response.ok) {
-
-                    throw new Error(result);
-
-                }
-
-
-                showToast(
-                    "Emergency patient treated"
-                );
-
-                refreshQueue();
-
-            }
-
-            catch (error) {
-
-                showToast(
-                    "No emergency patient available"
-                );
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =========================
+/* =====================================================
    SEARCH PATIENT
-========================= */
+===================================================== */
 
 const searchBtn =
-    document.getElementById("searchBtn");
+    document.getElementById(
+        "searchBtn"
+    );
+
 
 if (searchBtn) {
 
@@ -823,13 +1052,14 @@ if (searchBtn) {
 }
 
 
-async function searchPatient() {
+function searchPatient() {
 
     const id =
         document
             .getElementById("searchId")
             .value
             .trim();
+
 
     const result =
         document.getElementById(
@@ -851,119 +1081,166 @@ async function searchPatient() {
     }
 
 
-    try {
-
-        const response =
-            await fetch("/search", {
-
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/x-www-form-urlencoded"
-                },
-
-                body:
-                    new URLSearchParams({
-                        id: id
-                    })
-
-            });
+    let patient = null;
 
 
-        if (!response.ok) {
+    /* Search emergency */
 
-            result.innerHTML = `
-
-                <div class="not-found">
-                    Patient not found.
-                </div>
-
-            `;
-
-            return;
-        }
+    patient =
+        emergencyQueue.find(
+            p => p.id === id
+        );
 
 
-        const patient =
-            await response.json();
+    /* Search waiting */
 
+    if (!patient) {
 
-        result.innerHTML = `
-
-            <div class="found">
-
-                <h3>
-                    Patient Found ✓
-                </h3>
-
-                <p>
-                    <b>ID:</b>
-                    ${escapeHTML(patient.id)}
-                </p>
-
-                <p>
-                    <b>Name:</b>
-                    ${escapeHTML(patient.name)}
-                </p>
-
-                <p>
-                    <b>Age:</b>
-                    ${escapeHTML(patient.age)}
-                </p>
-
-                <p>
-                    <b>Gender:</b>
-                    ${escapeHTML(patient.gender)}
-                </p>
-
-                <p>
-                    <b>Problem:</b>
-                    ${escapeHTML(patient.problem)}
-                </p>
-
-                <p>
-                    <b>Priority:</b>
-
-                    <span class="priority p${patient.priority}">
-                        ${priorityText(patient.priority)}
-                    </span>
-
-                </p>
-
-            </div>
-
-        `;
+        patient =
+            waitingQueue.find(
+                p => p.id === id
+            );
 
     }
 
-    catch (error) {
+
+    /* Search treatment history */
+
+    if (!patient) {
+
+        patient =
+            treatmentHistory.find(
+                p => p.id === id
+            );
+
+    }
+
+
+    if (!patient) {
 
         result.innerHTML = `
 
             <div class="not-found">
-                Unable to connect to C server.
+
+                Patient with ID
+                <b>${escapeHTML(id)}</b>
+                was not found.
+
             </div>
 
         `;
 
+        return;
     }
+
+
+    result.innerHTML = `
+
+        <div class="found">
+
+            <h3>
+                Patient Found ✓
+            </h3>
+
+            <p>
+                <b>Patient ID:</b>
+                ${escapeHTML(patient.id)}
+            </p>
+
+            <p>
+                <b>Name:</b>
+                ${escapeHTML(patient.name)}
+            </p>
+
+            <p>
+                <b>Age:</b>
+                ${escapeHTML(patient.age)}
+            </p>
+
+            <p>
+                <b>Gender:</b>
+                ${escapeHTML(patient.gender)}
+            </p>
+
+            <p>
+                <b>Problem:</b>
+                ${escapeHTML(patient.problem)}
+            </p>
+
+            <p>
+                <b>Patient Type:</b>
+                ${escapeHTML(patient.type)}
+            </p>
+
+            <p>
+
+                <b>Priority:</b>
+
+                <span
+                    class="priority p${patient.priority}">
+
+                    ${priorityText(patient.priority)}
+
+                </span>
+
+            </p>
+
+        </div>
+
+    `;
 
 }
 
 
-/* =========================
-   INITIAL LOAD
-========================= */
+/* =====================================================
+   ENTER KEY SEARCH
+===================================================== */
 
-refreshQueue();
+const searchInput =
+    document.getElementById(
+        "searchId"
+    );
 
 
-/* =========================
-   AUTO REFRESH
-========================= */
+if (searchInput) {
 
-setInterval(
-    refreshQueue,
-    3000
-);
+    searchInput.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Enter") {
+
+                searchPatient();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   RENDER EVERYTHING
+===================================================== */
+
+function renderAll() {
+
+    sortEmergencyQueue();
+
+    updateDashboard();
+
+    renderEmergencyQueue();
+
+    renderWaitingQueue();
+
+    renderHistory();
+
+}
+
+
+/* =====================================================
+   START APPLICATION
+===================================================== */
+
+renderAll();
